@@ -1,8 +1,7 @@
-class Hoop {
+class Platform {
   constructor(x, y) {
     this.sprite = new Sprite(x, y, 90, 10, 'static');
-    this.sprite.img = hoopImg;
-    this.sprite.scale = 0.38;
+    this.sprite.color = 'white';
   }
 
   draw() {
