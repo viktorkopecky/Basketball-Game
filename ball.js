@@ -13,14 +13,17 @@ class Ball {
     this.sprite.friction = 0.03;
   }
 
-  shoot(shootAngle, power) {
-  this.sprite.vel.x = cos(shootAngle) * power * 2;
-  this.sprite.vel.y = sin(shootAngle) * power * 2;
+  shoot(angleRad, power) {
+  this.sprite.vel.x = Math.cos(angleRad) * power * 2;
+  this.sprite.vel.y = Math.sin(angleRad) * power * 2;
 
+  /*
   console.log(
   'vx:', this.sprite.vel.x,
   'vy:', this.sprite.vel.y
 );
+*/
+
 }
 
   reset() {
@@ -31,10 +34,6 @@ class Ball {
   }
 
   update() {
-    // pokud míč spadne mimo obraz
-    if (this.sprite.y > height + 50) {
-      this.reset();
-      canShoot = true;
-    }
+    
   }
 }

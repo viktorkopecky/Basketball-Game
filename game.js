@@ -2,25 +2,30 @@ let ball, ballImg;
 let hoop, hoopImg;
 let platform;
 
+let scoreSensor;
 let score = 0;
+
 let power = 0;
-let maxPower = 25;
+let maxPower = 12;
 let charging = false;
 let canShoot = true;
 
-let BOTTOM_Y = 580;
 let bottomWall;
 let topWall;
-
 let walls = [];
+const bottomY = 720;
+
 let images = {};
-let shootAngle = -45 * Math.PI / 180;
+
+// funkce pro výpočet úhlu střely podle nabití
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
 
 function preload() {
   hoopImg = loadImage('./img/hoop.png');
   ballImg = loadImage('./img/ball.png');
 }
-
 
 function createWalls() {
     bottomWall = new StaticWall(width / 2, height - 20, width, 40);
@@ -34,67 +39,57 @@ function createWalls() {
 
     const right = new StaticWall(width - 20, height / 2, 40, height);
     walls.push(right);
-
-
 }
 
 function setup() {
-    const canvas = createCanvas(1000, 700);
+    const canvas = createCanvas(1000, 800);
     canvas.parent("container");
-    world.gravity.y = 7;
+    world.gravity.y = 8;
 
     ball = new Ball(150, height / 2);
-    hoop = new Hoop(width - 210, height / 2 + 50);
+    hoop = new Hoop(width - 210, height / 2 + 95);
     platform = new Platform(150, height / 2 + 50);
 
-    // Spodní hranici určeme z výšky canvasu (bez ohledu na stěnu tloušťky)
-    BOTTOM_Y = height - 5;
 
-    // Kreslení spritů vypneme automaticky a provedeme ručně, aby HUD byl vždy navrchu
-    if (typeof world !== 'undefined' && world) {
-        world.autoDraw = false;
-    }
-   
+    scoreSensor = new Sprite(hoop.rim.x, hoop.rim.y + 50, 60, 6);
+    scoreSensor.collider = 'none';
+    scoreSensor.sensor = true;  // detekce
+    scoreSensor.visible = false;
+
     createWalls();
-  }
+}
 
 function draw() {
     background(255, 178, 102);
 
     ball.update();
 
-  // NABÍJENÍ SÍLY
+  // nabíjení střely
   if (charging && power < maxPower) {
-    power += 0.3;
+    power += 0.25;
   }
-
-  // UI – ukazatel síly
-  drawPowerBar();
 
   // skóre
   fill(0);
-  textSize(20);
-  text("Score: " + score, 50, 70);
+  textSize(50);
+  text("Score: " + score, 60, 90);
 
-
-  if (charging) {
-  stroke(255, 0, 0);
-  strokeWeight(2);
-
-  line(
-    ball.sprite.x,
-    ball.sprite.y,
-    ball.sprite.x + cos(shootAngle) * 60,
-    ball.sprite.y + sin(shootAngle) * 60
-  );
-
-  noStroke();
+  //reset a přičtení skóre, když se míč dotkne senzoru
+  if (ball.sprite.overlaps(scoreSensor)) {
+  if (ball.sprite.vel.y > 0) { // míč padá dolů
+    score++;
+    resetBall();
+  }
 }
 
+// reset, když se míč dotkne země
+if (ball.sprite.pos.y >= bottomY) {
+    resetBall();
+  }
+
 }
 
-// ───────── OVLÁDÁNÍ ─────────
-
+// ovládání
 function keyPressed() {
   if (key === ' ' && canShoot) {
     charging = true;
@@ -102,39 +97,34 @@ function keyPressed() {
   }
 
   if (key === 'r' || key === 'R') {
-    resetGame();
+    resetBall();
   }
 }
 
 function keyReleased() {
   if (key === ' ' && charging) {
-    let minAngle = -1.3;
-    let maxAngle = -0.6;
 
-    shootAngle =
-      map(power, 0, maxPower, minAngle, maxAngle) * Math.PI / 180;
+    let minAngle = -75;
+    let maxAngle = -35;
 
+    let t = power / maxPower;
+    let angleDeg = lerp(minAngle, maxAngle, t);
+    let angleRad = angleDeg * Math.PI / 180;
 
-    ball.shoot(shootAngle, power);
+    ball.shoot(angleRad, power);
 
     charging = false;
     canShoot = false;
   }
 }
 
-function resetGame() {
-  ball.reset();
-  power = 0;
-  charging = false;
+// reset
+function resetBall() {
+  ball.sprite.x = 150;
+  ball.sprite.y = height / 2;
+
+  ball.sprite.vel.x = 0;
+  ball.sprite.vel.y = 0;
+
   canShoot = true;
-}
-
-// ───────── UI ─────────
-
-function drawPowerBar() {
-  fill(0);
-  rect(20, height - 30, 200, 10);
-
-  fill(0, 200, 0);
-  rect(200, height - 30, map(power, 0, maxPower, 0, 200), 10);
 }

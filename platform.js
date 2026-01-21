@@ -5,6 +5,6 @@ class Platform {
   }
 
   draw() {
-    // p5play kreslí sprite automaticky
+    
   }
 }
