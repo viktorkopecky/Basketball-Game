@@ -15,8 +15,6 @@ let topWall;
 let walls = [];
 const bottomY = 720;
 
-let images = {};
-
 // funkce pro výpočet úhlu střely podle nabití
 function lerp(a, b, t) {
   return a + (b - a) * t;
@@ -127,4 +125,5 @@ function resetBall() {
   ball.sprite.vel.y = 0;
 
   canShoot = true;
+
 }
